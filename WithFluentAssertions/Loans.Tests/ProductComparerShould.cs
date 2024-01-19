@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using FluentAssertions.Execution;
 using Loans.Domain.Applications;
 using Loans.Domain.Applications.Values;
 using NUnit.Framework;
@@ -95,6 +96,36 @@ namespace Loans.Tests
             Assert.That(comparisons,
                         Has.Exactly(1)
                            .Matches(new MonthlyRepaymentGreaterThanZeroConstraint("a", 1)));
+        }
+
+        [Test]
+        public void AssertionScopes()
+        {
+            List<MonthlyRepaymentComparison> comparisons = sut.CompareMonthlyRepayments(new LoanTerm(30));
+
+            using (new AssertionScope())
+            {
+                comparisons.Should().NotBeNullOrEmpty();
+                comparisons.Should().HaveCount(4); // fail - should be 3
+                comparisons.Should().OnlyHaveUniqueItems();
+                comparisons.Should().Contain(new MonthlyRepaymentComparison("v", 1, 643.28m)); // fail - "v" doesn't exist
+                comparisons.Should().BeInAscendingOrder(x => x.ProductName);
+            }            
+        }
+
+        [Test]
+        public void AssertionScopes_FluentChained()
+        {
+            List<MonthlyRepaymentComparison> comparisons = sut.CompareMonthlyRepayments(new LoanTerm(30));
+
+            using (new AssertionScope())
+            {
+                comparisons.Should().NotBeNullOrEmpty()
+                    .And.HaveCount(4) // fail - should be 3
+                    .And.OnlyHaveUniqueItems()
+                    .And.Contain(new MonthlyRepaymentComparison("v", 1, 643.28m)) // fail - "v" doesn't exist
+                    .And.BeInAscendingOrder(x => x.ProductName);
+            }
         }
     }
 }
