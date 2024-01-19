@@ -1,4 +1,5 @@
-﻿using Loans.Domain.Applications;
+﻿using FluentAssertions;
+using Loans.Domain.Applications;
 using Loans.Domain.Applications.Values;
 using NUnit.Framework;
 using System.Collections.Generic;
@@ -39,7 +40,8 @@ namespace Loans.Tests
             List<MonthlyRepaymentComparison> comparisons =
                 sut.CompareMonthlyRepayments(new LoanTerm(30));
 
-            Assert.That(comparisons, Has.Exactly(3).Items);
+            //Assert.That(comparisons, Has.Exactly(3).Items);
+            comparisons.Should().HaveCount(3);
         }
 
 
@@ -49,7 +51,8 @@ namespace Loans.Tests
             List<MonthlyRepaymentComparison> comparisons =
                 sut.CompareMonthlyRepayments(new LoanTerm(30));
 
-            Assert.That(comparisons, Is.Unique);
+            //Assert.That(comparisons, Is.Unique);
+            comparisons.Should().OnlyHaveUniqueItems();
         }
 
 
@@ -62,7 +65,24 @@ namespace Loans.Tests
             // Need to also know the expected monthly repayment
             var expectedProduct = new MonthlyRepaymentComparison("a", 1, 643.28m);
 
-            Assert.That(comparisons, Does.Contain(expectedProduct));
+            //Assert.That(comparisons, Does.Contain(expectedProduct));
+            comparisons.Should().Contain(expectedProduct);
+        }
+
+        [Test]
+        public void ReturnNonNullNonEptyComparisons()
+        {
+            List<MonthlyRepaymentComparison> comparisons = sut.CompareMonthlyRepayments(new LoanTerm(30));
+
+            comparisons.Should().NotBeNullOrEmpty();
+        }
+
+        [Test]
+        public void ReturnComparisonsSortedByProductName()
+        {
+            List<MonthlyRepaymentComparison> comparisons = sut.CompareMonthlyRepayments(new LoanTerm(30));
+
+            comparisons.Should().BeInAscendingOrder(x => x.ProductName);
         }
 
 
